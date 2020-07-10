@@ -47,24 +47,21 @@ impl<T: Default> ToyVec<T> {
         }
     }
 
+    pub fn get_or<'a>(&'a self, index: usize, default: &'a T) -> &'a T {
+        self.get(index).unwrap_or(default)
+    }
+
     fn grow(&self) {}
 }
 
 fn main() {
-    let mut v = ToyVec::<usize>::with_capacity(10);
-    v.push(1);
-    v.push(2);
-    if let Some(value) = v.get(1) {
-        println!("{}", *value);
-    }
-    if let Some(value) = v.get(100) {
-        println!("{}", *value);
-    } else {
-        println!("None");
-    }
-    let e = v.get(0);
-    println!("{}", v.len());
-    assert_eq!(e, Some(&1));
-    v.push(3);
-    assert_eq!(e, Some(&1));
+    let mut v = ToyVec::with_capacity(2);
+    v.push("Java".to_string());
+    v.push("Budgerigar".to_string());
+    let e = v.get(1);
+    assert_eq!(e, Some(&"Budgerigar".to_string()));
+
+    let default = String::default();
+    let e = v.get_or(10, &default);
+    assert_eq!(e, &String::default());
 }
