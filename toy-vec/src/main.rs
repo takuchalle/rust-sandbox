@@ -105,6 +105,15 @@ impl<'vec, T> Iterator for Iter<'vec, T> {
     }
 }
 
+impl<'vec, T: Default> IntoIterator for &'vec ToyVec<T> {
+    type Item = &'vec T;
+    type IntoIter = Iter<'vec, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 fn main() {
     let mut v = ToyVec::new();
     v.push("Java".to_string());
@@ -119,6 +128,14 @@ fn main() {
     assert_eq!(e, &String::default());
     
     for e in v.iter() {
+        println!("{}", e);
+    }
+
+    for e in v.into_iter() {
+        println!("{}", e);        
+    }
+
+    for e in &v {
         println!("{}", e);
     }
 }
