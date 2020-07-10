@@ -61,13 +61,26 @@ impl<T: Default> ToyVec<T> {
         }
     }
 
-    fn grow(&self) {}
+    fn grow(&mut self) {
+        if self.capacity() == 0 {
+            self.elements = Self::allocate_in_heap(1);
+        } else {
+            let new_elem = Self::allocate_in_heap(self.capacity() * 2);
+            let old_elem = std::mem::replace(&mut self.elements, new_elem);
+
+            for (i, e) in old_elem.into_vec().into_iter().enumerate() {
+                self.elements[i] = e;
+            }            
+        }
+    }
 }
 
 fn main() {
-    let mut v = ToyVec::with_capacity(2);
+    let mut v = ToyVec::new();
     v.push("Java".to_string());
     v.push("Budgerigar".to_string());
+    v.push("Hoge".to_string());
+    v.push("Fuga".to_string());
     let e = v.get(1);
     assert_eq!(e, Some(&"Budgerigar".to_string()));
 
