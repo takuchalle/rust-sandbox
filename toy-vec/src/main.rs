@@ -75,6 +75,36 @@ impl<T: Default> ToyVec<T> {
     }
 }
 
+pub struct Iter<'vec, T> {
+    elements: &'vec Box<[T]>,
+    len: usize,
+    pos: usize,
+}
+
+impl<T: Default> ToyVec<T> {
+    pub fn iter(& self) -> Iter<T> {
+        Iter {
+            elements: &self.elements,
+            len: self.len,
+            pos: 0,
+        }
+    }
+}
+
+impl<'vec, T> Iterator for Iter<'vec, T> {
+    type Item = &'vec T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.pos >= self.len {
+            None
+        } else {
+            let res = Some(&self.elements[self.pos]);
+            self.pos += 1;
+            res
+        }
+    }
+}
+
 fn main() {
     let mut v = ToyVec::new();
     v.push("Java".to_string());
@@ -87,4 +117,8 @@ fn main() {
     let default = String::default();
     let e = v.get_or(10, &default);
     assert_eq!(e, &String::default());
+    
+    for e in v.iter() {
+        println!("{}", e);
+    }
 }
