@@ -47,24 +47,95 @@ impl<T: Default> ToyVec<T> {
         }
     }
 
-    fn grow(&self) {}
+    pub fn get_or<'a>(&'a self, index: usize, default: &'a T) -> &'a T {
+        self.get(index).unwrap_or(default)
+    }
+
+    pub fn pop(&mut self) -> Option<T> {
+        if self.len == 0 {
+            None
+        } else {
+            self.len -= 1;
+            let elem = std::mem::replace(&mut self.elements[self.len], Default::default());
+            Some(elem)
+        }
+    }
+
+    fn grow(&mut self) {
+        if self.capacity() == 0 {
+            self.elements = Self::allocate_in_heap(1);
+        } else {
+            let new_elem = Self::allocate_in_heap(self.capacity() * 2);
+            let old_elem = std::mem::replace(&mut self.elements, new_elem);
+
+            for (i, e) in old_elem.into_vec().into_iter().enumerate() {
+                self.elements[i] = e;
+            }            
+        }
+    }
+}
+
+pub struct Iter<'vec, T> {
+    elements: &'vec Box<[T]>,
+    len: usize,
+    pos: usize,
+}
+
+impl<T: Default> ToyVec<T> {
+    pub fn iter(& self) -> Iter<T> {
+        Iter {
+            elements: &self.elements,
+            len: self.len,
+            pos: 0,
+        }
+    }
+}
+
+impl<'vec, T> Iterator for Iter<'vec, T> {
+    type Item = &'vec T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.pos >= self.len {
+            None
+        } else {
+            let res = Some(&self.elements[self.pos]);
+            self.pos += 1;
+            res
+        }
+    }
+}
+
+impl<'vec, T: Default> IntoIterator for &'vec ToyVec<T> {
+    type Item = &'vec T;
+    type IntoIter = Iter<'vec, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
 }
 
 fn main() {
-    let mut v = ToyVec::<usize>::with_capacity(10);
-    v.push(1);
-    v.push(2);
-    if let Some(value) = v.get(1) {
-        println!("{}", *value);
+    let mut v = ToyVec::new();
+    v.push("Java".to_string());
+    v.push("Budgerigar".to_string());
+    v.push("Hoge".to_string());
+    v.push("Fuga".to_string());
+    let e = v.get(1);
+    assert_eq!(e, Some(&"Budgerigar".to_string()));
+
+    let default = String::default();
+    let e = v.get_or(10, &default);
+    assert_eq!(e, &String::default());
+    
+    for e in v.iter() {
+        println!("{}", e);
     }
-    if let Some(value) = v.get(100) {
-        println!("{}", *value);
-    } else {
-        println!("None");
+
+    for e in v.into_iter() {
+        println!("{}", e);        
     }
-    let e = v.get(0);
-    println!("{}", v.len());
-    assert_eq!(e, Some(&1));
-    v.push(3);
-    assert_eq!(e, Some(&1));
+
+    for e in &v {
+        println!("{}", e);
+    }
 }
